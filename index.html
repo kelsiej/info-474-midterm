@@ -9,7 +9,7 @@
 </style>
 
 <body>
-  
+
 
 
 
@@ -18,9 +18,9 @@
   <script>
 
     // set the dimensions and margins of the graph
-    var margin = { top: 40, right: 20, bottom: 30, left: 40 },
+    var margin = { top: 24, right: 20, bottom: 30, left: 40 },
       width = 960 - margin.left - margin.right,
-      height = 500 - margin.top - margin.bottom;
+      height = 505 - margin.top - margin.bottom;
 
     // set the ranges
     var x = d3.scaleBand()
@@ -28,6 +28,32 @@
       .padding(0.1);
     var y = d3.scaleLinear()
       .range([height, 0]);
+
+    var svg0 = d3.select("body").append("svg")
+      .attr("width", "100%")
+      .attr("height", "30px")
+      .attr("fill", "white")
+      .append("g");
+
+    var rectangle1 = svg0.append("rect")
+      .attr("x", 300)
+      .attr("y", 0)
+      .attr("width", 920)
+      .attr("height", 30)
+      .attr("fill", "orange")
+      .attr("padding-bottom", 0);
+
+    var label = svg0.append("text")
+      .attr("y", 22)
+      .attr("x", 450)
+      .attr('text-anchor', 'middle')
+      .attr("class", "title")
+
+
+      .text('Average Viewership By Season');
+
+
+
 
 
 
@@ -40,6 +66,8 @@
       .append("g")
       .attr("transform",
         "translate(" + margin.left + "," + margin.top + ")");
+
+    // add white backgroud to chart area
     var rectangle = svg.append("rect")
       .attr("x", 0)
       .attr("y", -26)
@@ -50,7 +78,10 @@
     // get the data
     d3.csv("data/simpsons.csv", function (error, data) {
       if (error) throw error;
+      console.log(data)
+      //////////////////////////////////////////////////
 
+      // find the average to add to the chart as a line
       function getFields(input, field) {
         var output = [];
         for (var i = 0; i < input.length; ++i)
@@ -60,19 +91,14 @@
 
       var result = getFields(data, 'Avg. Viewers (mil)'); // returns [ 1, 3, 5 ]
 
-
-
-
-      console.log(result.length);
-
       let avg = 0;
       for (i = 0; i < result.length; i++) {
         avg = avg + Number(result[i])
-
       }
 
-      console.log(data)
+      var threshold = avg / result.length;
 
+      //////////////////////////////////////////////////
 
       // format the data
       data.forEach(function (d) {
@@ -83,12 +109,17 @@
       x.domain(data.map(function (d) { return d['Year']; }));
       y.domain([0, d3.max(data, function (d) { return d['Avg. Viewers (mil)']; })]);
 
+      //////////////////////////////////////////////////
+      // create a tooltip
+
       var tooltip = d3.select("body").append("div").attr("class", "toolTip");
 
       let div = d3.select("body").append("div")
         .attr("class", "tooltip")
         .style("opacity", 0)
         .style('fill', 'white');
+
+      //////////////////////////////////////////////////
 
       // append the rectangles for the bar chart
       var bar = svg.selectAll(".bar")
@@ -99,21 +130,21 @@
         .attr("width", x.bandwidth())
         .attr("y", function (d) { return y(d['Avg. Viewers (mil)']); })
         .attr("height", function (d) { return height - y(d['Avg. Viewers (mil)']); })
+        .style("fill", function (d) { return d.Data == 'Actual' ? '#6ca4e5' : 'gray' })
         .on("mousemove", function (d) {
           tooltip
             .style("left", d3.event.pageX - 50 + "px")
             .style("top", d3.event.pageY - 70 + "px")
             .style("display", "inline-block")
-            .html(("<b> <font color='red'>" + "Season #: " + d['Year']) + "</font></b>" + "<br>" + "<br>" + "<font color='#6ca4e5'>" + "Year:" + d['Year'] + "<br>" +
+            .html(("<b> <font color='red'> <font style='font-size:140%'>" + "Season #: " + d['Year']) + "</font></font></b>" + "<br>" + "<br>" + "<font color='#6ca4e5'>" + "Year:" + d['Year'] + "<br>" +
               "Episodes: " + d['Episodes'] + "<br>" + " Avg. Viewers (mil): " + (d['Avg. Viewers (mil)'] + "<br>" + "<br>" + "Most Watched Episode: " +
                 d['Most watched episode'] + "<br>" + "Viewers (mil): " + d['Viewers (mil)'] + "</font>"));
         })
         .on("mouseout", function (d) { tooltip.style("display", "none"); });
       ;
-      var threshold = avg / result.length;
+      //////////////////////////////////////////////////
 
-
-
+      //add the avg line
       var median = svg.append("line")
         .attr("x1", 0)
         .attr("y1", y(threshold))
@@ -123,15 +154,16 @@
         .style("stroke-dasharray", ("4, 4"))
         .attr("stroke", "silver");
 
-
+      // add y label
       var myText = svg.append("text")
-        .attr("y", height - 460)
-        .attr("x", threshold - 220)
+        .attr("y", height - 477)
+        .attr("x", threshold - 234)
         .attr('text-anchor', 'middle')
         .attr("class", "myLabel")
-        .text("Average Viewers (in millions")
+        .text("Average Viewers (in millions)")
         .attr('transform', 'rotate(-90)');
 
+      // box to put avg line tooltip in
       var rectangle = svg.append("rect")
         .attr("x", threshold - 7)
         .attr("y", height - 238)
@@ -139,7 +171,7 @@
         .attr("height", 25)
         .attr("fill", "rgba(255, 255, 255, 0.5)");
 
-
+      //avg line tooltip text
       var myText = svg.append("text")
         .attr("y", height - 220)
         .attr("x", threshold + 15)
@@ -147,13 +179,41 @@
         .attr("class", "myLabel")
         .text(Math.floor(threshold * 100) / 100);
 
-      var myText = svg.append("text")
-        .attr("y", height - (height + 10))
-        .attr("x", threshold + 420)
+      var colorCodes = svg.append("text")
+        .attr("y", 20 )
+        .attr("x", 775)
         .attr('text-anchor', 'middle')
-        .attr("class", "myLabel")
-        .text("Average Viewership By Season");
+        .attr("class", "colorLabels")
+        .text("Viewership Data");
 
+        var colorLabelBox1 = svg.append("rect")
+        .attr("x", 732)
+        .attr("y", 30)
+        .attr("width", 15)
+        .attr("height", 15)
+        .attr("fill", "#6ca4e5");
+
+        var colorLabelText1 = svg.append("text")
+        .attr("x", 770 )
+        .attr("y", 40)
+        .attr('text-anchor', 'middle')
+        .attr("class", "colorLabelText")
+        .text("Actual");
+
+        var colorLabelBox2 = svg.append("rect")
+        .attr("x", 732)
+        .attr("y", 53)
+        .attr("width", 15)
+        .attr("height", 15)
+        .attr("fill", "gray");
+
+        var colorLabelText2 = svg.append("text")
+        .attr("x", 779 )
+        .attr("y", 64)
+        .attr('text-anchor', 'middle')
+        .attr("class", "colorLabelText")
+        .text("Predicted");
+      //////////////////////////////////////////////////
 
       // add the x Axis
       svg.append("g")
@@ -163,8 +223,6 @@
       // add the y Axis
       svg.append("g")
         .call(d3.axisLeft(y));
-
-
 
       svg.selectAll("text.bar")
         .data(data)
@@ -179,7 +237,7 @@
 
     });
 
-
+    // pointer events: this solves the flashing issue
 
   </script>
 </body>
@@ -188,9 +246,34 @@
     background-color: #ffe135;
     display: flex;
     align-items: center;
-    justify-content: center;
+    flex-direction: column;
+
     padding-top: 5%;
 
+  }
+
+  .myLabel {
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  .title {
+    font-family: Arial, Helvetica, sans-serif;
+    color: white;
+    font-size: 20px;
+    font-style: italic;
+
+  }
+
+  .colorLabels{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  .colorLabelText{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+  
   }
 
   .toolTip {
@@ -201,12 +284,16 @@
     background: none repeat scroll 0 0 #ffffff;
     border: 1px solid #6F257F;
     padding: 14px;
-
     font-family: Arial, Helvetica, sans-serif;
+    pointer-events: none;
   }
 
   .myLabel {
     background-color: azure;
+  }
+
+  .rect {
+    padding-bottom: 0%;
   }
 </style>
 
